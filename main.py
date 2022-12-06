@@ -101,9 +101,16 @@ def show_grabbed_piece(screen, x, y):
         screen.blit(piece_images[piece_grabbed], (x-C//2, y-C//2))
     pass
 
+def whose_moving(board, x, y):
+    return str(board[x//C][y//C]).isupper()
+
+
+
+
 def main(board=Board):
     global piece_grabbed
     finished = False
+    whites_move = True
     piece_grabbed = '0'
     pygame.init()
     screen = pygame.display.set_mode((C*8, C*8))
@@ -118,13 +125,14 @@ def main(board=Board):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN and whose_moving(board, pos[1], pos[0]) == whites_move:
                 piece_grabbed = board[pos[1]//C][pos[0]//C]
                 board[pos[1]//C][pos[0]//C] = '0'
             elif event.type == pygame.MOUSEBUTTONUP:
                 if piece_grabbed != '0':
                     board[pos[1]//C][pos[0]//C] = piece_grabbed
                     piece_grabbed = '0'
+                    
     pygame.quit()
 
 main()
