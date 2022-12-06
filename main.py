@@ -9,7 +9,7 @@ FPS = 60
 A1_COLOR = (140, 162, 173)
 A2_COLOR = (255, 255, 255)
 COLORS = [A2_COLOR, A1_COLOR]
-C = 90 # cell size
+C = 80 # cell size
 
 piece_images = {'b': pygame.transform.smoothscale(pygame.image.load('piece_images/bB.png'), (C, C)), 
                 'B': pygame.transform.smoothscale(pygame.image.load('piece_images/wB.png'), (C, C)),
@@ -67,15 +67,21 @@ def board_to_FEN(game_info):
     board = game_info[0]
     FEN = ''
     for i in range (8):
-        for j in range (8):
+        j = 0
+        while j < 8:
             k = 1
             if board[i][j] != '0':
                 FEN += board[i][j]
+                j += 1
             else:
                 while j+k < 8 and board[i][j+k] == '0':
                     k += 1
+                j += k
                 FEN += str(k)
         FEN += '/'
+    FEN = FEN[:-1] + ' '
+    for i in range (1, 6):
+        FEN += str(game_info[i]) + ' '
     return FEN
 
 
@@ -87,20 +93,38 @@ def show_board(screen, board=Board):
                 screen.blit(piece_images[board[y][x]], (x*C, y*C))
     pass
 
+def show_grabbed_piece(screen, x, y):
+    global piece_grabbed
+    if piece_grabbed == '0':
+        pass
+    else:
+        screen.blit(piece_images[piece_grabbed], (x-C//2, y-C//2))
+    pass
 
 def main(board=Board):
+    global piece_grabbed
     finished = False
+    piece_grabbed = '0'
     pygame.init()
     screen = pygame.display.set_mode((C*8, C*8))
     pygame.display.set_caption("Chess")
     clock = pygame.time.Clock()
     while not finished:
-        show_board(screen, FEN_to_board(starting_position)[0])
+        pos = pygame.mouse.get_pos()
+        show_board(screen, board)
+        show_grabbed_piece(screen, pos[0], pos[1])
         clock.tick(FPS)
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 finished = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                piece_grabbed = board[pos[1]//C][pos[0]//C]
+                board[pos[1]//C][pos[0]//C] = '0'
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if piece_grabbed != '0':
+                    board[pos[1]//C][pos[0]//C] = piece_grabbed
+                    piece_grabbed = '0'
     pygame.quit()
 
 main()
