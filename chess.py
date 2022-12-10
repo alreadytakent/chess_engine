@@ -5,9 +5,12 @@ starting_position = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
 FPS = 60
 DARK_COLOR = (140, 162, 173)
+DARK_COLOR_1 = (140, 200, 173)
 LIGHT_COLOR = (255, 255, 255)
+LIGHT_COLOR_1 = (200, 255, 200)
 GREEN = (0, 255, 0)
 COLORS = [LIGHT_COLOR, DARK_COLOR]
+COLORS_BACKLIGHT = [LIGHT_COLOR_1, DARK_COLOR_1]
 C = 80 # cell size
 
 
@@ -102,10 +105,21 @@ class Chess:
         self.grabbed_piece = '0'
         self.highlight = True
     
-    def show_board(self, screen):
-        for i in range (0, 8):
-            for j in range (0, 8):
-                pygame.draw.rect(screen, COLORS[(i+j)%2], (i*C, j*C, C, C))
+    def show_board(self, screen, piece):
+        if self.grabbed_piece == '0':
+            for i in range (0, 8):
+                for j in range (0, 8): 
+                    pygame.draw.rect(screen, COLORS[(i+j)%2], (i*C, j*C, C, C))
+        else:
+            for i in range (0, 8):
+                for j in range (0, 8): 
+                    if self.highlight and piece != '0':
+                        pygame.draw.rect(screen, COLORS[(i+j)%2], (i*C, j*C, C, C))
+                        for coord in piece.legal_moves(self.game.board):
+                            pygame.draw.rect(screen, COLORS_BACKLIGHT[(coord[1]+coord[0])%2], (coord[1]*C, coord[0]*C, C, C))
+                    else:
+                        pygame.draw.rect(screen, COLORS[(i+j)%2], (i*C, j*C, C, C))
+
     
     def show_pieces(self, screen):
         for piece in self.game.pieces:
@@ -427,10 +441,9 @@ def main(starting_position):
     while not finished:
         
         pos = pygame.mouse.get_pos()
-        chess.show_board(screen)
+        chess.show_board(screen, chess.grabbed_piece)
         chess.show_pieces(screen)
         chess.show_grabbed_piece(screen, (pos[0]-C//2, pos[1]-C//2))
-        chess.show_legal_moves(screen, chess.grabbed_piece)
         
         clock.tick(FPS)
         pygame.display.update()
@@ -449,7 +462,6 @@ def main(starting_position):
     pass
 
 main(starting_position)
-
 
 
 
