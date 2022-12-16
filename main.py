@@ -151,8 +151,11 @@ class Piece:
         self.team = label.isupper()
         self.image = load_image(['b', 'w'][self.team] + label.upper())
     
-    def show_yourself(self, screen):
-        screen.blit(self.image, (self.coord[1]*C, self.coord[0]*C))
+    def show_yourself(self, screen, reverse):
+        if reverse:
+            screen.blit(self.image, ((7-self.coord[1])*C, (7-self.coord[0])*C))
+        else:
+            screen.blit(self.image, (self.coord[1]*C, self.coord[0]*C))
 
 
 class Pawn(Piece):
@@ -471,15 +474,24 @@ class Chess:
         self.game = Board(FEN_to_info(FEN))
         self.grabbed_piece = Square()
         self.highlighted_moves = []
+        self.reverse = 0
+    
+    def rotate_board(self):
+        self.reverse = 1 - self.reverse
     
     def show_board(self, screen):
-        for i in range (8):
-            for j in range (8):
-                pygame.draw.rect(screen, COLORS[(i+j)%2], (i*C, j*C, C, C))
+        if self.reverse:
+            for i in range (8):
+                for j in range (8):
+                    pygame.draw.rect(screen, COLORS[(i+j)%2], ((7-i)*C, (7-j)*C, C, C))
+        else:
+            for i in range (8):
+                for j in range (8):
+                    pygame.draw.rect(screen, COLORS[(i+j)%2], (i*C, j*C, C, C))
     
     def show_pieces(self, screen):
         for piece in self.game.pieces:
-            piece.show_yourself(screen)
+            piece.show_yourself(screen, self.reverse)
     
     def show_grabbed_piece(self, screen, pos):
         if not self.grabbed_piece.empty:
@@ -488,15 +500,21 @@ class Chess:
     def show_legal_moves(self, screen):
         for coord in self.highlighted_moves:
             i, j = coord
+            if self.reverse:
+                i, j = 7-i, 7-j
             pygame.draw.rect(screen, HIGHLIGHTED_COLORS[(i+j)%2], (j*C, i*C, C, C))
 
     def grab_piece(self, i, j):
+        if self.reverse:
+            i, j = 7-i, 7-j
         square = self.game.board[i][j]
         if not (square.empty or (square.team ^ self.game.turn)):
             self.grabbed_piece = self.game.board[i][j]
             self.highlighted_moves = self.grabbed_piece.legal_moves(self.game)
     
     def drop_piece(self, i, j):
+        if self.reverse:
+            i, j = 7-i, 7-j
         if (i, j) in self.highlighted_moves:
             self.game.push(self.grabbed_piece.coord, (i, j))
         self.grabbed_piece = Square()
@@ -519,6 +537,8 @@ def main(FEN):
                 chess.grab_piece(pos[1]//C, pos[0]//C)
             elif event.type == pygame.MOUSEBUTTONUP:
                 chess.drop_piece(pos[1]//C, pos[0]//C)
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_f:
+                chess.rotate_board()
         chess.show_board(screen)
         chess.show_legal_moves(screen)
         chess.show_pieces(screen)
