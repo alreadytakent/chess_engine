@@ -1,6 +1,6 @@
 import pygame
 
-FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+FEN = '1k6/3Q4/1K6/8/8/8/8/8 w - - 0 1'
 
 FPS = 60
 C = 80
@@ -25,7 +25,6 @@ def print_board(board):
                 string += square.label + ' '
         print(string, end='\n')
     print('================')
-    pass
 
 
 def FEN_to_info(FEN):
@@ -352,23 +351,24 @@ class King(Piece):
                 if square.empty or (square.team ^ self.team):
                     if not isattacked(Board.move(self.coord, coord), self.team, coord):
                         legal_moves.append(coord)
-        for c in castling:
-            if c == ['k', 'K'][self.team]:
-                s = True
-                for j in [5, 6]:
-                    if not board[self.w][j].empty or isattacked(board, self.team, (self.w, j)):
-                        s = False
-                        break
-                if s:
-                    legal_moves.append((self.w, 6))
-            elif c == ['q', 'Q'][self.team]:
-                s = True
-                for j in [1, 2, 3]:
-                    if not board[self.w][j].empty or isattacked(board, self.team, (self.w, j)):
-                        s = False
-                        break
-                if s:
-                    legal_moves.append((self.w, 2))
+        if not Board.check:
+            for c in castling:
+                if c == ['k', 'K'][self.team]:
+                    s = True
+                    for j in [5, 6]:
+                        if not board[self.w][j].empty or isattacked(board, self.team, (self.w, j)):
+                            s = False
+                            break
+                    if s:
+                        legal_moves.append((self.w, 6))
+                elif c == ['q', 'Q'][self.team]:
+                    s = True
+                    for j in [1, 2, 3]:
+                        if not board[self.w][j].empty or isattacked(board, self.team, (self.w, j)):
+                            s = False
+                            break
+                    if s:
+                        legal_moves.append((self.w, 2))
         return legal_moves
 
 
@@ -393,10 +393,16 @@ class Board:
                         self.kings[0] = square
 
 
-    def legal_moves(self):
-        legal_moves = []
+    def termination(self):
+        end = True
         for piece in self.pieces:
-            legal_moves.append(piece.legal_moves(self.info))
+            if piece.team == self.turn:
+                if piece.legal_moves(self) != []:
+                    end = False
+        if end:
+            if self.check:
+                return 'Checkmate'
+            return 'Stalemate'
     
     def remove_piece(self, coord):
         i, j = coord
@@ -432,7 +438,7 @@ class Board:
             elif j == self.en_passant and i == [5, 2][team]:
                 self.pieces.remove(self.board[[4, 3][team]][j])
                 self.board[[4, 3][team]][j] = Square()
-        elif label == ['k', 'K'][team] and len(self.castling) != 0:
+        elif label == ['k', 'K'][team] and self.castling != '':
             w = piece.w
             d = start[1] - end[1]
             if d == 2:
@@ -452,8 +458,8 @@ class Board:
                     if c in [['k', 'q'], ['K', 'Q']][team]:
                         self.castling = self.castling.replace(c, '')
             else:
-                self.castling = []
-        elif label == ['r', 'R'][team] and len(self.castling) != 0:
+                self.castling = ''
+        elif label == ['r', 'R'][team] and self.castling != '':
             if j == 0:
                 h = ['q', 'Q'][team]
             else:
@@ -465,6 +471,7 @@ class Board:
             self.check = 1
         else:
             self.check = 0
+        print(self.termination())
 
 
 class Chess:
@@ -545,12 +552,6 @@ def main(FEN):
         clock.tick(FPS)
         pygame.display.update()
     pygame.quit()
-    pass
+
 
 main(FEN)
-
-#print(isattacked(FEN_to_info('rnbqkbnr/ppp2ppp/8/1B1pp3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 3')[0], 1, (4, 6)))
-
-#game = Board(FEN_to_info('rnbqkbnr/ppp2ppp/8/1B1pp3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 3'))
-
-#print(game.push)
