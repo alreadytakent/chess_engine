@@ -37,7 +37,7 @@ def FEN_to_info(FEN):
     if castling == '-':
         castling = ''
     if en_passant == '-':
-        en_passant = None
+        en_passant = -2
     draw_countdown = int(draw_countdown)
     move_number = int(move_number)
     rows = list(board_str.split('/'))
@@ -422,7 +422,7 @@ class Board:
             self.pieces.remove(square)
         label = piece.label
         team = piece.team
-        en_passant = None
+        en_passant = -2
         self.board = self.move(start, end)
         if label == ['p', 'P'][team]:
             if abs(i-io) == 2:
@@ -453,7 +453,6 @@ class Board:
                         self.castling = self.castling.replace(c, '')
             else:
                 self.castling = []
-            self.en_passant = None
         elif label == ['r', 'R'][team] and len(self.castling) != 0:
             if j == 0:
                 h = ['q', 'Q'][team]
@@ -555,8 +554,3 @@ main(FEN)
 #game = Board(FEN_to_info('rnbqkbnr/ppp2ppp/8/1B1pp3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 3'))
 
 #print(game.push)
-
-
-
-
-
