@@ -456,7 +456,7 @@ class Board:
                 h = ['q', 'Q'][team]
             else:
                 h = ['k', 'K'][team]
-            self.castling.remove(h)
+            self.castling = self.castling.replace(h, '')
         self.en_passant = en_passant
         self.change_turn()
         if isattacked(self.board, self.turn, self.kings[self.turn].coord):
