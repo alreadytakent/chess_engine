@@ -1,6 +1,5 @@
 import pygame
 import pygame_menu
-import random
 import sys
 
 #cтрочка, однозначно характеризующая положения фигур
@@ -8,6 +7,7 @@ FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
 FPS = 60
 C = 80
+screen = pygame.display.set_mode((C*8, C*8))
 
 DARK_COLOR = (140, 162, 173)
 LIGHT_COLOR = (255, 255, 255)
@@ -484,11 +484,6 @@ class Board:
             [0, 0, 0, 0, 0, 0, 0, 0]
         ]
 
-    def menu(self):
-        menu = pygame_menu.Menu('Welcome', 400, 300, theme=pygame_menu.themes.THEME_BLUE)
-        menu.add.button('New game', 5)
-        menu.add.button('Quit', pygame_menu.events.EXIT)
-
     def show_text(self, sc, text):
         """Вывод текста на экран"""
         f1 = pygame.font.Font(None, 36)
@@ -500,14 +495,7 @@ class Board:
                 if i.type == pygame.QUIT:
                      sys.exit()
 
-    def menu(self, sc, text):
-            """Меню. text - текс, который выводится пользователю"""
-            pygame.init()
-            surface = pygame.display.set_mode((600, 400))
-            menu = pygame_menu.Menu(text, 400, 300, theme=pygame_menu.themes.THEME_BLUE)
-            menu.add.button('Новая игра', main('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'))
-            menu.add.button('Выход', pygame_menu.events.EXIT)
-            menu.mainloop(sc)
+    
 
     def termination(self, sc):
         """Проверка на мат и пат, завершение игры"""
@@ -518,8 +506,8 @@ class Board:
                     end = False
         if end:
             if self.check:
-                self.menu(sc, "Мат, игра завершена.")
-            self.menu(sc, "Пат, игра завершена.")
+                menu(sc, "Мат, игра завершена.")
+            menu(sc, "Пат, игра завершена.")
             
 
     def remove_piece(self, coord):
@@ -604,6 +592,7 @@ class Chess:
         self.reverse = 0
     
     def rotate_board(self):
+        """Поворот доски"""
         self.reverse = 1 - self.reverse
     
     def show_board(self, screen):
@@ -654,10 +643,18 @@ class Chess:
         self.grabbed_piece = Square()
         self.highlighted_moves = []
 
+def menu(sc, text):
+        """Меню. text - текс, который выводится пользователю"""
+        pygame.init()
+        surface = pygame.display.set_mode((600, 400))
+        menu = pygame_menu.Menu(text, 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+        menu.add.button('Новая игра', main)
+        menu.add.button('Выход', pygame_menu.events.EXIT)
+        menu.mainloop(sc)
 
-def main(FEN):
+
+def main(FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'):
     finished = False
-    pygame.init()
     screen = pygame.display.set_mode((C*8, C*8))
     pygame.display.set_caption("Chess")
     clock = pygame.time.Clock()
@@ -681,4 +678,5 @@ def main(FEN):
         pygame.display.update()
     pygame.quit()
 
-main(FEN)
+menu(pygame.display.set_mode((C*8, C*8)), 'Добро пожаловать')
+
