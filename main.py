@@ -2,6 +2,7 @@ import pygame
 import random
 import sys
 
+#cтрочка, однозначно характеризующая положения фигур
 FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
 FPS = 60
@@ -30,6 +31,10 @@ def print_board(board):
 
 
 def FEN_to_info(FEN):
+    """
+    Возращает по FEN информацию о доске: массив, характеризующий позицию 
+    на доске, чей ход, возможна ли рокировка,  можно ли брать на проходе.
+    """
     board_str, whose_turn, castling, en_passant, draw_countdown, move_number = FEN.split()
     if whose_turn == 'w':
         whose_turn = 1
@@ -86,6 +91,7 @@ def create_piece(label, coord):
 
 
 def isattacked(board, team, coord):
+    """ Возвращает атакована ли фигура. """
     io, jo = coord
     piece_labels = [['P', 'N', 'B', 'Q', 'R', 'K'], ['p', 'n', 'b', 'q', 'r', 'k']][team]
     king_attacks = [(io, jo+1), (io-1, jo+1), (io-1, jo), (io-1, jo-1),
@@ -160,6 +166,7 @@ class Piece:
 
 
 class Pawn(Piece):
+    """Описывает ходы пешки"""
     
     def __init__(self, label, coord):
         super().__init__(label, coord)
@@ -205,6 +212,7 @@ class Pawn(Piece):
 
 
 class Knight(Piece):
+    """Описывает ходы коня"""
     
     def __init__(self, label, coord):
         super().__init__(label, coord)
@@ -240,6 +248,7 @@ class Knight(Piece):
 
 
 class Bishop(Piece):
+    """Описывает ходы слона"""
     
     def __init__(self, label, coord):
         super().__init__(label, coord)
@@ -282,6 +291,7 @@ class Bishop(Piece):
 
 
 class Rook(Piece):
+    """Описывает ходы ладьи"""
     
     def __init__(self, label, coord):
         super().__init__(label, coord)
@@ -324,6 +334,7 @@ class Rook(Piece):
 
 
 class Queen(Piece):
+    """Описывает ходы ферзя"""
     
     def __init__(self, label, coord):
         super().__init__(label, coord)
@@ -335,6 +346,7 @@ class Queen(Piece):
 
 
 class King(Piece):
+    """Описывает ходы короля"""
     
     def __init__(self, label, coord):
         super().__init__(label, coord)
@@ -375,6 +387,7 @@ class King(Piece):
 
 
 class Board:
+    """Описывает действия, происходящие на доске"""
     
     def __init__(self, info):
         self.board = info[0]
@@ -472,6 +485,7 @@ class Board:
 
 
     def termination(self):
+        """Проверка на мат и пат"""
         end = True
         for piece in self.pieces:
             if piece.team == self.turn:
@@ -490,6 +504,7 @@ class Board:
         self.turn = 1 - self.turn
     
     def move(self, start, end):
+        """Возвращает доску после сделанного хода"""
         piece = self.board[start[0]][start[1]]
         board_copy = [row[:] for row in self.board]
         board_copy[start[0]][start[1]] = Square()
@@ -497,6 +512,7 @@ class Board:
         return board_copy
     
     def push(self, start, end):
+        """Характеризует ход и доску: проверка на мат, шахб пат, рокировку, взятие на проходе"""
         io, jo = start
         i, j = end
         piece = self.board[io][jo]
@@ -553,6 +569,7 @@ class Board:
 
 
 class Chess:
+    """Вывод самих шахмат на экран"""
     
     def __init__(self, start_pos):
         self.game = Board(FEN_to_info(FEN))
@@ -564,6 +581,7 @@ class Chess:
         self.reverse = 1 - self.reverse
     
     def show_board(self, screen):
+        """Выводит доску на экран"""
         if self.reverse:
             for i in range (8):
                 for j in range (8):
@@ -574,14 +592,17 @@ class Chess:
                     pygame.draw.rect(screen, COLORS[(i+j)%2], (i*C, j*C, C, C))
     
     def show_pieces(self, screen):
+        """Выводит фигуры на экран"""
         for piece in self.game.pieces:
             piece.show_yourself(screen, self.reverse)
     
     def show_grabbed_piece(self, screen, pos):
+        """Захваченные фигуры движутся вместе с курсором"""
         if not self.grabbed_piece.empty:
             screen.blit(self.grabbed_piece.image, pos)
     
     def show_legal_moves(self, screen):
+        """Подсвечивает клетки на которые может сходить захваченная фигура"""
         for coord in self.highlighted_moves:
             i, j = coord
             if self.reverse:
@@ -589,6 +610,7 @@ class Chess:
             pygame.draw.rect(screen, HIGHLIGHTED_COLORS[(i+j)%2], (j*C, i*C, C, C))
 
     def grab_piece(self, i, j):
+        """Действия, которые совершаются после взятия фигуры"""
         if self.reverse:
             i, j = 7-i, 7-j
         square = self.game.board[i][j]
@@ -597,6 +619,7 @@ class Chess:
             self.highlighted_moves = self.grabbed_piece.legal_moves(self.game)
     
     def drop_piece(self, i, j):
+        """Действия, которые совершаются после отпускания фигуры"""
         if self.reverse:
             i, j = 7-i, 7-j
         if (i, j) in self.highlighted_moves:
