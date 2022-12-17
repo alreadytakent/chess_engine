@@ -1,4 +1,5 @@
 import pygame
+import pygame_menu
 import random
 import sys
 
@@ -483,9 +484,33 @@ class Board:
             [0, 0, 0, 0, 0, 0, 0, 0]
         ]
 
+    def menu(self):
+        menu = pygame_menu.Menu('Welcome', 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+        menu.add.button('New game', 5)
+        menu.add.button('Quit', pygame_menu.events.EXIT)
 
-    def termination(self):
-        """Проверка на мат и пат"""
+    def show_text(self, sc, text):
+        """Вывод текста на экран"""
+        f1 = pygame.font.Font(None, 36)
+        text = f1.render(text, 1, (180, 0, 0))
+        sc.blit(text, (10, 50))
+        pygame.display.update()
+        while 1:
+            for i in pygame.event.get():
+                if i.type == pygame.QUIT:
+                     sys.exit()
+
+    def menu(self, sc, text):
+            """Меню. text - текс, который выводится пользователю"""
+            pygame.init()
+            surface = pygame.display.set_mode((600, 400))
+            menu = pygame_menu.Menu(text, 400, 300, theme=pygame_menu.themes.THEME_BLUE)
+            menu.add.button('Новая игра', main('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'))
+            menu.add.button('Выход', pygame_menu.events.EXIT)
+            menu.mainloop(sc)
+
+    def termination(self, sc):
+        """Проверка на мат и пат, завершение игры"""
         end = True
         for piece in self.pieces:
             if piece.team == self.turn:
@@ -493,9 +518,10 @@ class Board:
                     end = False
         if end:
             if self.check:
-                return 'Checkmate'
-            return 'Stalemate'
-    
+                self.menu(sc, "Мат, игра завершена.")
+            self.menu(sc, "Пат, игра завершена.")
+            
+
     def remove_piece(self, coord):
         i, j = coord
         self.pieces.remove(self.board[i][j])
@@ -511,8 +537,8 @@ class Board:
         board_copy[end[0]][end[1]] = piece
         return board_copy
     
-    def push(self, start, end):
-        """Характеризует ход и доску: проверка на мат, шахб пат, рокировку, взятие на проходе"""
+    def push(self, start, end, screen):
+        """Характеризует ход и доску: проверка на мат, шах, пат, рокировку, взятие на проходе"""
         io, jo = start
         i, j = end
         piece = self.board[io][jo]
@@ -565,7 +591,7 @@ class Board:
             self.check = 1
         else:
             self.check = 0
-        print(self.termination())
+        self.termination(screen)
 
 
 class Chess:
@@ -618,12 +644,13 @@ class Chess:
             self.grabbed_piece = self.game.board[i][j]
             self.highlighted_moves = self.grabbed_piece.legal_moves(self.game)
     
-    def drop_piece(self, i, j):
+    def drop_piece(self, i, j, screen):
         """Действия, которые совершаются после отпускания фигуры"""
         if self.reverse:
             i, j = 7-i, 7-j
         if (i, j) in self.highlighted_moves:
-            self.game.push(self.grabbed_piece.coord, (i, j))
+            self.game.push(self.grabbed_piece.coord, (i, j), screen)
+            pygame.display.update()
         self.grabbed_piece = Square()
         self.highlighted_moves = []
 
@@ -643,7 +670,7 @@ def main(FEN):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 chess.grab_piece(pos[1]//C, pos[0]//C)
             elif event.type == pygame.MOUSEBUTTONUP:
-                chess.drop_piece(pos[1]//C, pos[0]//C)
+                chess.drop_piece(pos[1]//C, pos[0]//C, screen)
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_f:
                 chess.rotate_board()
         chess.show_board(screen)
@@ -653,6 +680,5 @@ def main(FEN):
         clock.tick(FPS)
         pygame.display.update()
     pygame.quit()
-
 
 main(FEN)
