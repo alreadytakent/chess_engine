@@ -2,8 +2,7 @@ import pygame
 import pygame_menu
 import sys
 
-#cтрочка, однозначно характеризующая положения фигур
-FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+start_pos = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
 FPS = 60
 C = 80
@@ -16,6 +15,8 @@ COLORS = [LIGHT_COLOR, DARK_COLOR]
 HIGHLIGHTED_DARK_COLOR = (140, 200, 173)
 HIGHLIGHTED_LIGHT_COLOR = ((200, 255, 200))
 HIGHLIGHTED_COLORS = [HIGHLIGHTED_DARK_COLOR, HIGHLIGHTED_LIGHT_COLOR]
+
+RED = (255, 0, 0)
 
 
 def print_board(board):
@@ -140,8 +141,9 @@ def isattacked(board, team, coord):
     return False
 
 
-def pawn_promote():
-    pass
+def pawn_promote(coord):
+    label = input()
+    return create_piece(label, coord)
 
 
 class Square:
@@ -179,18 +181,6 @@ class Pawn(Piece):
         en_passant = Board.en_passant
         def move_inspector(coord):
             return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        '''
-        if Board.check:
-            def move_inspector(coord):
-                return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        else:
-            board_copy = [row[:] for row in board]
-            board_copy[io][jo] = Square()
-            if isattacked(board_copy, self.team, king.coord):
-                return []
-            def move_inspector(coord):
-                return True
-        '''
         legal_moves = []
         starting_row = [1, 6][self.team]
         step = (-1)**self.team
@@ -224,18 +214,6 @@ class Knight(Piece):
         king = Board.kings[self.team]
         def move_inspector(coord):
             return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        '''
-        if Board.check:
-            def move_inspector(coord):
-                return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        else:
-            board_copy = [row[:] for row in board]
-            board_copy[io][jo] = Square()
-            if isattacked(board_copy, self.team, king.coord):
-                return []
-            def move_inspector(coord):
-                return True
-        '''
         legal_moves = []
         knight_moves = [(io-1, jo+2), (io-2, jo+1), (io-2, jo-1), (io-1, jo-2),
                         (io+1, jo-2), (io+2, jo-1), (io+2, jo+1), (io+1, jo+2)]
@@ -260,18 +238,6 @@ class Bishop(Piece):
         king = Board.kings[self.team]
         def move_inspector(coord):
             return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        '''
-        if Board.check:
-            def move_inspector(coord):
-                return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        else:
-            board_copy = [row[:] for row in board]
-            board_copy[io][jo] = Square()
-            if isattacked(board_copy, self.team, king.coord):
-                return []
-            def move_inspector(coord):
-                return True
-        '''
         legal_moves = []
         diags = [[(io-k, jo+k) for k in range (1, min(io, 7-jo)+1)],
                  [(io-k, jo-k) for k in range (1, min(io, jo)+1)],
@@ -303,18 +269,6 @@ class Rook(Piece):
         king = Board.kings[self.team]
         def move_inspector(coord):
             return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        '''
-        if Board.check:
-            def move_inspector(coord):
-                return not isattacked(Board.move(self.coord, coord), self.team, king.coord)
-        else:
-            board_copy = [row[:] for row in board]
-            board_copy[io][jo] = Square()
-            if isattacked(board_copy, self.team, king.coord):
-                return []
-            def move_inspector(coord):
-                return True
-        '''
         legal_moves = []
         lines = [[(io, k) for k in range (jo+1, 8)],
                  [(k, jo) for k in range (io-1, -1, -1)],
@@ -407,83 +361,7 @@ class Board:
                         self.kings[1] = square
                     elif square.label == 'k':
                         self.kings[0] = square
-        # Веса фигур
-        self.values_figure = {
-            Pawn: 100,
-            Knight: 300,
-            Bishop: 300,
-            Rook: 500,
-            Queen: 900,
-            King: 9000
-        }
-
-        # Веса позиций
-        self.pos_pl_king = [
-            [25, 25, 21, 15, 15, 21, 25, 25],
-            [21, 21, 17, 13, 13, 17, 21, 21],
-            [13, 13, 5, 5, 5, 5, 13, 13],
-            [9, 5, 0, 0, 0, 0, 5, 9],
-            [9, 5, 0, 0, 0, 0, 5, 9],
-            [13, 13, 5, 5, 5, 5, 13, 13],
-            [21, 21, 17, 13, 13, 17, 21, 21],
-            [25, 25, 21, 15, 15, 21, 25, 25]
-        ]
-
-        self.pos_pl_queen = [
-            [20, 25, 25, 30, 30, 25, 25, 20],
-            [17, 20, 25, 27, 27, 25, 20, 17],
-            [15, 18, 20, 25, 25, 20, 18, 15],
-            [12, 15, 19, 21, 21, 19, 15, 12],
-            [11, 15, 19, 21, 21, 19, 15, 11],
-            [10, 15, 17, 19, 19, 17, 15, 10],
-            [8, 12, 15, 15, 15, 15, 12, 8],
-            [7, 10, 15, 20, 20, 15, 10, 7]
-        ]
-
-        self.pos_pl_rook = [
-            [20, 25, 25, 30, 30, 25, 25, 20],
-            [17, 20, 25, 27, 27, 25, 20, 17],
-            [15, 18, 20, 25, 25, 20, 18, 15],
-            [12, 15, 19, 21, 21, 19, 15, 12],
-            [11, 15, 19, 21, 21, 19, 15, 11],
-            [10, 15, 17, 19, 19, 17, 15, 10],
-            [8, 12, 15, 15, 15, 15, 12, 8],
-            [7, 10, 15, 20, 20, 15, 10, 7]
-        ]
-
-        self.pos_pl_bishop = [
-            [14, 14, 14, 14, 14, 14, 14, 14],
-            [14, 22, 18, 18, 18, 18, 22, 14],
-            [14, 18, 22, 22, 22, 22, 18, 14],
-            [14, 18, 22, 25, 25, 22, 18, 14],
-            [14, 18, 22, 25, 25, 22, 18, 14],
-            [14, 18, 22, 22, 22, 22, 18, 14],
-            [14, 22, 18, 18, 18, 18, 22, 14],
-            [14, 14, 14, 14, 14, 14, 14, 14]
-        ]
-
-        self.pos_pl_knight = [
-            [0, 4, 8, 10, 10, 8, 4, 0],
-            [4, 8, 16, 20, 20, 16, 8, 4],
-            [8, 16, 24, 28, 28, 24, 16, 8],
-            [10, 20, 28, 32, 32, 28, 20, 10],
-            [10, 20, 28, 32, 32, 28, 20, 10],
-            [8, 16, 24, 28, 28, 24, 16, 8],
-            [4, 8, 16, 20, 20, 16, 8, 4],
-            [0, 4, 8, 10, 10, 8, 4, 0]
-        ]
-
-        self.pos_pl_pawn = [
-            [20, 20, 28, 35, 35, 28, 20, 20],
-            [25, 25, 28, 32, 32, 28, 25, 25],
-            [15, 18, 25, 32, 32, 25, 18, 15],
-            [8, 12, 16, 24, 24, 16, 12, 8],
-            [6, 8, 12, 16, 16, 12, 8, 6],
-            [6, 8, 8, 12, 12, 8, 8, 6],
-            [4, 4, 4, 6, 6, 4, 4, 4],
-            [0, 0, 0, 0, 0, 0, 0, 0]
-        ]
-
+    
     def show_text(self, sc, text):
         """Вывод текста на экран"""
         f1 = pygame.font.Font(None, 36)
@@ -542,7 +420,10 @@ class Board:
             if abs(i-io) == 2:
                 en_passant = j 
             elif i == [7, 0][team]:
-                self.board[i][j] = pawn_promote()
+                new_piece = pawn_promote((i, j))
+                self.board[i][j] = new_piece
+                self.pieces.remove(piece)
+                self.pieces.append(new_piece)
             elif j == self.en_passant and i == [5, 2][team]:
                 self.pieces.remove(self.board[[4, 3][team]][j])
                 self.board[[4, 3][team]][j] = Square()
@@ -585,7 +466,7 @@ class Board:
 class Chess:
     """Вывод самих шахмат на экран"""
     
-    def __init__(self, start_pos):
+    def __init__(self, FEN):
         self.game = Board(FEN_to_info(FEN))
         self.grabbed_piece = Square()
         self.highlighted_moves = []
@@ -623,6 +504,15 @@ class Chess:
             if self.reverse:
                 i, j = 7-i, 7-j
             pygame.draw.rect(screen, HIGHLIGHTED_COLORS[(i+j)%2], (j*C, i*C, C, C))
+    
+    def show_check(self, screen):
+        if self.game.check:
+            i, j = self.game.kings[self.game.turn].coord
+            if self.reverse:
+                pygame.draw.rect(screen, RED, ((7-j)*C, (7-i)*C, C, C))
+            else:
+                pygame.draw.rect(screen, RED, (j*C, i*C, C, C))
+            
 
     def grab_piece(self, i, j):
         """Действия, которые совершаются после взятия фигуры"""
@@ -643,22 +533,22 @@ class Chess:
         self.grabbed_piece = Square()
         self.highlighted_moves = []
 
+
 def menu(sc, text):
         """Меню. text - текс, который выводится пользователю"""
         pygame.init()
-        surface = pygame.display.set_mode((600, 400))
         menu = pygame_menu.Menu(text, 400, 300, theme=pygame_menu.themes.THEME_BLUE)
         menu.add.button('Новая игра', main)
         menu.add.button('Выход', pygame_menu.events.EXIT)
         menu.mainloop(sc)
 
 
-def main(FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'):
+def main():
     finished = False
     screen = pygame.display.set_mode((C*8, C*8))
     pygame.display.set_caption("Chess")
     clock = pygame.time.Clock()
-    chess = Chess(FEN)
+    chess = Chess(start_pos)
     while not finished:
         pos = pygame.mouse.get_pos()
         for event in pygame.event.get():
@@ -672,11 +562,12 @@ def main(FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'):
                 chess.rotate_board()
         chess.show_board(screen)
         chess.show_legal_moves(screen)
+        chess.show_check(screen)
         chess.show_pieces(screen)
         chess.show_grabbed_piece(screen, (pos[0]-C//2, pos[1]-C//2))     
         clock.tick(FPS)
         pygame.display.update()
     pygame.quit()
 
-menu(pygame.display.set_mode((C*8, C*8)), 'Добро пожаловать')
 
+menu(pygame.display.set_mode((C*8, C*8)), 'Добро пожаловать')
