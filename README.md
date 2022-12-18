@@ -19,7 +19,7 @@
 
     $ pip install pygame -U
     
-    $ pip install pygame-menu -U
+    $> pip install pygame-menu -U
 
 Запустить программу можно через командную строку
 
