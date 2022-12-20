@@ -19,6 +19,19 @@ HIGHLIGHTED_COLORS = [HIGHLIGHTED_DARK_COLOR, HIGHLIGHTED_LIGHT_COLOR]
 RED = (255, 0, 0)
 
 
+def print_board(board):
+    print('================')
+    for row in board:
+        string = ''
+        for square in row:
+            if square.empty:
+                string += '. '
+            else:
+                string += square.label + ' '
+        print(string, end='\n')
+    print('================')
+
+
 def FEN_to_info(FEN):
     """
     Возращает по FEN информацию о доске: массив, характеризующий позицию 
@@ -55,7 +68,6 @@ def load_image(s):
 
 
 def isonboard(coord):
-    """Проверяем являются ли коорбинаты, координатами доски"""
     i, j = coord
     if (i > -1) & (i < 8) & (j > -1) & (j < 8):
         return True
@@ -81,7 +93,7 @@ def create_piece(label, coord):
 
 
 def isattacked(board, team, coord):
-    """ Возвращает атакована ли клетка. """
+    """ Возвращает атакована ли фигура. """
     io, jo = coord
     piece_labels = [['P', 'N', 'B', 'Q', 'R', 'K'], ['p', 'n', 'b', 'q', 'r', 'k']][team]
     king_attacks = [(io, jo+1), (io-1, jo+1), (io-1, jo), (io-1, jo-1),
@@ -129,14 +141,8 @@ def isattacked(board, team, coord):
     return False
 
 
-def pawn_promote(coord):
-    """Возвращаем фигуру, на которую надо поменять пешку, которая дошла до края"""
-    label = input()
-    return create_piece(label, coord)
-
-
 class Square:
-    """Класс клетки"""
+    
     def __init__(self):
         self.empty = 1
 
@@ -151,10 +157,6 @@ class Piece:
         self.image = load_image(['b', 'w'][self.team] + label.upper())
     
     def show_yourself(self, screen, reverse):
-        """
-        Выводим фигуру на экран.
-        reverse[True|False] - дооска перевернута|не перевернута
-        """
         if reverse:
             screen.blit(self.image, ((7-self.coord[1])*C, (7-self.coord[0])*C))
         else:
@@ -413,7 +415,10 @@ class Board:
             if abs(i-io) == 2:
                 en_passant = j 
             elif i == [7, 0][team]:
-                new_piece = pawn_promote((i, j))
+                if self.turn == 1:
+                    new_piece = create_piece('Q', (i, j))
+                else:
+                    new_piece = create_piece('q', (i, j))
                 self.board[i][j] = new_piece
                 self.pieces.remove(piece)
                 self.pieces.append(new_piece)
