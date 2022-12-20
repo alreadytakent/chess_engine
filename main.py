@@ -1,5 +1,5 @@
 import pygame
-import random
+import random.choice as rnd
 from chess import play
 
 FPS = 60
@@ -131,7 +131,7 @@ def human_vs_bot(button):
     elif button.text == 'Чёрные':
         play(['human', 'bot'])
     else:
-        play(random.choice([['bot', 'human'], ['human', 'bot']]))
+        play(rnd([['bot', 'human'], ['human', 'bot']]))
     return menu
 
 def local_game(button):
