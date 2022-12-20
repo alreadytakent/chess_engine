@@ -1,5 +1,5 @@
 import pygame
-import random.choice as rnd
+from random import choice
 from chess import play
 
 FPS = 60
@@ -27,6 +27,7 @@ LIGHT_GRAY = (190, 190, 190)
 pygame.init()
 pygame.font.init()
 screen = pygame.display.set_mode((L + C*8 + R, U + C*8 + D))
+TEAM = 1
 
 
 def show_board(screen):
@@ -60,13 +61,16 @@ class Button:
         TExt.show_yourself(screen)
     
     def change_text(self):
-        text = self.text
-        if text == 'Белые':
+        global TEAM
+        if self.text == 'Белые':
             self.text = 'Чёрные'
-        elif text == 'Чёрные':
+            TEAM = 0
+        elif self.text == 'Чёрные':
             self.text = 'Случайный'
+            TEAM = choice([0, 1])
         else:
             self.text = 'Белые'
+            TEAM = 1
 
 
 class Text:
@@ -104,10 +108,10 @@ class Menu:
                 if button.scroll:
                     button.change_text()
                 else:
-                    main(button.function(button))
+                    main(button.function())
 
 
-def starting_menu(button):
+def starting_menu():
     menu = Menu()
     menu.append(Text('Добро пожаловать', (int(W//2), int(H//2)-200), 50))
     menu.append(Button((int(W//2), int(H//2)-80), (300, 60), against_computer, 'Против компьютера', 30))
@@ -115,7 +119,7 @@ def starting_menu(button):
     menu.append(Button((int(W//2), int(H//2)+80), (300, 60), bot_vs_bot, 'Бот против бота', 30))
     return menu
 
-def against_computer(button):
+def against_computer():
     menu = Menu()
     menu.append(Text('Выберите цвет', (int(W//2), int(H//2)-200), 50))
     scrollbutton = Button(CENTER, (200, 60), None, 'Белые', 30)
@@ -124,22 +128,21 @@ def against_computer(button):
     menu.append(Button((int(W//2), int(H//2)+100), (300, 60), human_vs_bot, 'Играть', 30))
     return menu
 
-def human_vs_bot(button):
+def human_vs_bot():
+    global TEAM
     menu = Menu()
-    if button.text == 'Белые':
+    if TEAM:
         play(['bot', 'human'])
-    elif button.text == 'Чёрные':
-        play(['human', 'bot'])
     else:
-        play(rnd([['bot', 'human'], ['human', 'bot']]))
+        play(['human', 'bot'])
     return menu
 
-def local_game(button):
+def local_game():
     menu = Menu()
     play(['human', 'human'])
     return menu
 
-def bot_vs_bot(button):
+def bot_vs_bot():
     menu = Menu()
     play(['bot', 'bot'])
     return menu
@@ -159,4 +162,4 @@ def main(menu):
         pygame.display.update()
     pygame.quit()
 
-main(starting_menu(None))
+main(starting_menu())
