@@ -4,8 +4,8 @@ from engine import engine_move
 start_pos = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 
 FPS = 60
-C = 70
-L, R, U, D = (0.5*C, 2*C, 0.5*C, 0.5*C)
+C = 80
+L, R, U, D = (0.5*C, 0.5*C, 0.5*C, 0.5*C)
 
 DARK_COLOR = (140, 162, 173)
 LIGHT_COLOR = (255, 255, 255)
@@ -614,6 +614,7 @@ def play(players):
                 if event.type == pygame.QUIT:
                     finished = True
     else:
+        print(chess.engine_team)
         if not (chess.game.turn ^ chess.engine_team):
             if not chess.game.termination():
                 chess.push(engine_move(chess.game))
